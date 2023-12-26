@@ -1,0 +1,46 @@
+---
+- hosts: all
+  become: true
+  tasks:
+    - name: Atualizar o cache do apt
+      apt:
+        update_cache: yes
+
+    - name: Instalar pacotes necessários
+      apt:
+        name: ["apt-transport-https", "curl"]
+        state: present
+
+    - name: Adicionar chave GPG do Kubernetes
+      apt_key:
+        url: https://packages.cloud.google.com/apt/doc/apt-key.gpg
+        state: present
+
+    - name: Adicionar repositório do Kubernetes
+      apt_repository:
+        repo: deb https://apt.kubernetes.io/ kubernetes-xenial main
+        state: present
+
+    - name: Instalar kubeadm, kubelet e kubectl
+      apt:
+        name: ["kubelet", "kubeadm", "kubectl"]
+        state: present
+
+    - name: Inicializar o cluster Kubernetes
+      command: kubeadm init --pod-network-cidr=10.244.0.0/16
+
+    - name: Criar diretório .kube no home do usuário
+      file:
+        path: $HOME/.kube
+        state: directory
+
+    - name: Copiar arquivo de configuração do Kubernetes para o usuário
+      copy:
+        src: /etc/kubernetes/admin.conf
+        dest: $HOME/.kube/config
+        owner: "{{ ansible_user }}"
+        group: "{{ ansible_user }}"
+        mode: 0644
+
+    - name: Instalar o Flannel
+      command: kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/master/Documentation/kube-flannel.yml

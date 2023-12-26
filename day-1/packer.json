@@ -1,0 +1,24 @@
+{
+    "builders": [
+        {
+            "type": "amazon-ebs",
+            "access_key": "...",
+            "secret_key": "...",
+            "region": "us-east-2",
+            "source_ami": "ami-fce3c696",
+            "instance_type": "t2.micro",
+            "ssh_username": "ubuntu",
+            "ami_name": "packer-example {{timestamp}}"
+        }
+    ],
+    "provisioners": [
+        {
+            "type": "shell",
+            "inline": [
+                "sleep 30",
+                "sudo apt-get update",
+                "sudo apt-get install -y nginx"
+            ]
+        }
+    ]
+}
